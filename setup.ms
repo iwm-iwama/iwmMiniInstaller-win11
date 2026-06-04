@@ -1,4 +1,4 @@
-VERSION = "20260514"
+VERSION = "20260604"
 //------------------------------------------------------------------------------
 //- ↓ 設定 ここから -----------------------------------------------------------
 
@@ -6,35 +6,41 @@ VERSION = "20260514"
 // 1.インストール先
 //-------------------
 // 1.1.フォルダ名
-InstName = "setup-sample"
+//   非推奨：日本語表記
+_InstallDir = "setup-sample"
 
 //-------------------
 // 2.ショートカット
 //-------------------
 // 2.1.表示名
-ShortcutName = "セットアップ・サンプル"
+_Shortcut = "セットアップ・サンプル"
 
 // 2.2.["ショートカット名", "実行ファイル", "アイコン"]
-//   注意：二次配列 [] 最後の "," は必須!!
-ShortcutItem = [
-	["01アプリケーション", "c:\windows\system32\notepad.exe", "c:\windows\system32\SHELL32.dll, 24"],
-	["02テキスト", "sample.txt", "sample.ico"],
-	["03あああ", "sample.txt"],
+//   必須：二次配列 [] 最後に "," を付与すること
+_ShortcutItem = [
+	["01 notepad.exe", "c:\windows\system32\notepad.exe", "c:\windows\system32\SHELL32.dll, 24"],
+	["02 sample.txt", "sample.txt", "sample.ico"],
+	["03 sample.txt", "sample.txt"],
 ]
+
+// 2.3.アンインストール・ショートカット名
+_ShortcutUninstall = "99 Uninstall"
+
 //- ↑ 設定 ここまで -----------------------------------------------------------
 //------------------------------------------------------------------------------
 
 // 初期設定
 //   実ファイルの格納先を %LOCALAPPDATA% に設定しています。
 //   "C:\Program Files\" などを要求するなら、別のセキュリティ対応インストーラーを使用することをお勧めします。
-InstDir      = env.LOCALAPPDATA + "\" + InstName
-ShortcutDir  = env.APPDATA + "\Microsoft\Windows\Start Menu\Programs\" + ShortcutName
+InstDir      = env.LOCALAPPDATA + "\" + _InstallDir
+ShortcutDir  = env.APPDATA + "\Microsoft\Windows\Start Menu\Programs\" + _Shortcut
 SetupFileDir = ".\setup-files"
 
 // 共通変数
 CR   = char(13)
 LF   = char(10)
 CRLF = CR + LF
+TAB  = char(9)
 
 ESC = char(27) + "["
 
@@ -92,24 +98,24 @@ end function
 //-------------
 CLS
 
-E2("97;44m", " " + ShortcutName + " ")
+E2("97;44m", " " + _Shortcut + " ")
 P2
 
 // ファイル存在チェック
 errorCnt = 0
-for i1 in ShortcutItem.indexes
-	if ShortcutItem[i1].len < 2 then
+for i1 in _ShortcutItem.indexes
+	if _ShortcutItem[i1].len < 2 then
 		E1("91m", "NG ")
-		P1(ShortcutItem[i1][0] + " ")
+		P1(_ShortcutItem[i1][0] + " ")
 		E2("95m", "No file name!")
 		errorCnt = errorCnt + 1
 	else
-		if not file.exists(ShortcutItem[i1][1]) then
-			fn = SetupFileDir + "\" + ShortcutItem[i1][1]
+		if not file.exists(_ShortcutItem[i1][1]) then
+			fn = SetupFileDir + "\" + _ShortcutItem[i1][1]
 			if not file.exists(fn) then
 				E1("91m", "NG ")
-				P1(ShortcutItem[i1][0] + " ")
-				E2("95m", ShortcutItem[i1][1] + "?")
+				P1(_ShortcutItem[i1][0] + " ")
+				E2("95m", _ShortcutItem[i1][1] + "?")
 				errorCnt = errorCnt + 1
 			end if
 		end if
@@ -119,31 +125,43 @@ end for
 // 中止
 if errorCnt > 0 then
 	P2
-	E1("95m", "2.2.ShortcutItem")
+	E1("95m", "2.2._ShortcutItem")
 	E2("37m", " を見直してください")
 	exit
 end if
 
 // 続行
 E2("93m", "1.インストール・フォルダ")
-E2("37m", "    " + InstDir)
+P1("    ")
+E2("37m", InstDir)
 P2
 E2("93m", "2.1.ショートカット・フォルダ")
-E2("37m", "    " + ShortcutDir)
+P1("    ")
+E2("37m", ShortcutDir)
 P2
 E2("93m", "2.2.ショートカット・アイテム")
-E2("95m", "    ショートカット名")
-E2("96m", "    実行ファイル")
-E2("92m", "    アイコン")
+P1("    ")
+E1("95m", "*ショートカット名")
+P1(TAB)
+E1("96m", "*実行ファイル")
+P1(TAB)
+E1("92m", "*アイコン")
 
-for i1 in ShortcutItem.indexes
+for i1 in _ShortcutItem.indexes
 	P2
-	E2("95m", "    " + ShortcutItem[i1][0])
-	E2("96m", "    " + ShortcutItem[i1][1])
-	if ShortcutItem[i1].len > 2 then
-		E2("92m", "    " + ShortcutItem[i1][2])
+	P1("    ")
+	E1("95m", _ShortcutItem[i1][0])
+	P1(TAB)
+	E1("96m", _ShortcutItem[i1][1])
+	if _ShortcutItem[i1].len > 2 then
+		P1(TAB)
+		E1("92m", _ShortcutItem[i1][2])
 	end if
 end for
+
+P2
+P1("    ")
+E2("95m", _ShortcutUninstall)
 
 // 注意
 if file.exists(InstDir) and file.info(InstDir).isDirectory then
@@ -163,7 +181,7 @@ E1("93m", "インストールしますか? [Y/n] ")
 	inputStr = input
 	P2
 	if inputStr != "y" and inputStr != "Y" then
-		P2 "中止しました..."
+		P2 "中止します..."
 		exit
 	end if
 
@@ -182,21 +200,21 @@ PS5("Copy-Item -Path '" + src + "' -Destination '" + dest + "' -Recurse -Force")
 //---------------------
 file.makedir ShortcutDir
 
-for i1 in ShortcutItem.indexes
-	shortcutPath = ShortcutDir + "\" + ShortcutItem[i1][0] + ".lnk"
+for i1 in _ShortcutItem.indexes
+	shortcutPath = ShortcutDir + "\" + _ShortcutItem[i1][0] + ".lnk"
 
-	targetPath = ShortcutItem[i1][1]
+	targetPath = _ShortcutItem[i1][1]
 		if not file.exists(targetPath) then
 			targetPath = InstDir + "\" + targetPath
 		end if
 
 	iconPath = ""
-		if ShortcutItem[i1].len > 2 then
-			fn = ShortcutItem[i1][2].split(",")[0]
+		if _ShortcutItem[i1].len > 2 then
+			fn = _ShortcutItem[i1][2].split(",")[0]
 			if file.exists(fn) then
-				iconPath = ShortcutItem[i1][2]
+				iconPath = _ShortcutItem[i1][2]
 			else
-				iconPath = InstDir + "\" + ShortcutItem[i1][2]
+				iconPath = InstDir + "\" + _ShortcutItem[i1][2]
 			end if
 		end if
 
@@ -214,10 +232,10 @@ end for
 // アンインストールファイル作成
 //-------------------------------
 // unistall-xxx_yyyyMMdd.bat
-UnistallFn01 = "unistall-" + InstName + "_" + NOW("yyyyMMdd") + ".bat"
+UnistallFn01 = "unistall-" + _InstallDir + "_" + NOW("yyyyMMdd") + ".bat"
 	UninstallBatch01 = [
 		"@echo off",
-		"echo [" + ShortcutName + "]",
+		"echo [" + _Shortcut + "]",
 		"echo.",
 		"echo - " + InstDir,
 		"echo - " + ShortcutDir,
@@ -244,7 +262,7 @@ UnistallFn01 = "unistall-" + InstName + "_" + NOW("yyyyMMdd") + ".bat"
 	PS5("Move-Item -Path '" + UnistallFn01 + "' '" + InstDir + "' -Force")
 
 // unistall-xxx.bat
-UnistallFn00 = "unistall-" + InstName + ".bat"
+UnistallFn00 = "unistall-" + _InstallDir + ".bat"
 	UninstallBatch00 = [
 		"@echo off",
 		"copy """ + InstDir + "\" + UnistallFn01 + """ ""%TEMP%""",
@@ -257,7 +275,7 @@ UnistallFn00 = "unistall-" + InstName + ".bat"
 
 	PS5("Move-Item -Path '" + UnistallFn00 + "' '" + InstDir + "' -Force")
 
-	shortcutPath = ShortcutDir + "\99アンインストール.lnk"
+	shortcutPath = ShortcutDir + "\" + _ShortcutUninstall + ".lnk"
 	targetPath = InstDir + "\" + UnistallFn00
 
 	ps1 = "" +
