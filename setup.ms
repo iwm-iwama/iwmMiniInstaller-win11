@@ -1,4 +1,4 @@
-VERSION = "20260604"
+VERSION = "20260811"
 //------------------------------------------------------------------------------
 //- « Ý’è ‚±‚±‚©‚ç -----------------------------------------------------------
 
@@ -209,7 +209,7 @@ for i1 in _ShortcutItem.indexes
 		end if
 
 	iconPath = ""
-		if _ShortcutItem[i1].len > 2 then
+		if _ShortcutItem[i1].len > 2 and _ShortcutItem[i1][2] != "" then
 			fn = _ShortcutItem[i1][2].split(",")[0]
 			if file.exists(fn) then
 				iconPath = _ShortcutItem[i1][2]
